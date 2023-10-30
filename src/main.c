@@ -66,7 +66,9 @@ typedef struct str8_view
 
 typedef enum error_codes
 {
+  ERROR_CODE_NO_ERROR,
   ERROR_CODE_NOT_ENOUGH_ARGUMENTS,
+  ERROR_CODE_INVALID_ARGUMENT,
   ERROR_CODE_INVALID_EXPRESSION,
   ERROR_CODE_INVALID_FILE_PATH,
 } error_codes;
@@ -74,42 +76,68 @@ typedef enum error_codes
 typedef struct parse_res
 {
   f32 value;
-  i32 error;
+  error_codes error;
 } parse_res;
 
 #define parse_res_make_error(code) (parse_res) {-1.f, code}
-#define parse_res_make_success(value) (parse_res) {value, 0}
+#define parse_res_make_success(value) (parse_res) {value, ERROR_CODE_NO_ERROR}
 
 parse_res parse_expr(str8 expr)
 {
   return parse_res_make_success(420);
 }
 
+str8 os_parse_file(str8 filepath)
+{
+  return filepath;
+}
+
 int main(int argc, char** argv)
 {
-  me_assert(argc > 1,
-    ERROR_CODE_NOT_ENOUGH_ARGUMENTS, 
-    "Received too few arguments!\nAppend --h for help!"
+  if (argc == 1)
+    goto help;
+
+  str8 s = str8_make(argv[1]);
+  if (str8_starts_with(s, str8_make("--h")))
+    goto help;
+
+  b8 bexpr = str8_starts_with(s, str8_make("--e"));
+  b8 bfile = str8_starts_with(s, str8_make("--f"));
+
+  if (!bexpr && !bfile)
+    me_assert(0, 
+      ERROR_CODE_INVALID_ARGUMENT,
+      "Received unknown argument!\nAppend --h for a help command!"
+    );
+  
+  me_assert(argc > 2, 
+    ERROR_CODE_NOT_ENOUGH_ARGUMENTS,
+    "Missing arguments!\nAppend --h for a help command!"
   );
   
-  str8 arg1 = str8_make(argv[1]);
-  if (str8_starts_with(arg1, str8_make("--f")))
-  {
-    me_assert(argc > 2, 
-      ERROR_CODE_NOT_ENOUGH_ARGUMENTS,
-      "Please specify the file after the --f flag!"
-    );
-
-    arg1 = str8_make(argv[2]);
-    me_log("Was given file input: %s", arg1.str);
-  }
-
-  parse_res result = parse_expr(arg1);
-  me_assert(result.error != 0, 
+  s = bexpr ? str8_make(argv[2]) : os_parse_file(str8_make(argv[2]));
+  parse_res result = parse_expr(s);
+  me_assert(result.error == 0, 
     result.error,
     "Failed to parse expression."
   );
-
   me_output("%.8f", result.value);
+  return 0;
+
+help:
+  me_output(
+    "-- Calcopod's Math Eval --\n"
+    "A random math expression evaluator.\n"
+    "\n\n"
+    "Example usage:\n"
+    "/path/to/math_eval --e \"0.5 + log(12, 1 / ( sqrt(9^3) ) )\"\n"
+    "\n\n"
+    "Arguments:\n"
+    "--h - Prints this message!\n"
+    "--e [expression] - Specifies the expression to evaluate.\n"
+    "--f [file] - Specifies the file to read and evaluate.\n"
+    "\n\n"
+    "Happy use!"
+  );
   return 0;
 }

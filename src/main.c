@@ -6,6 +6,7 @@
 #include "os_utils.h"
 
 #include "lexer.h"
+#include "parser.h"
 
 typedef enum error_codes
 {
@@ -29,9 +30,11 @@ typedef struct parse_res
 
 parse_res parse_expr(str8 expr)
 {
-  lexer_t lexer = lexer_make(expr);
-
   lex_token_t tokens[256];
+  parser_node_t nodes[256];
+  
+  lexer_t lexer = lexer_make(expr);
+  parser_t parser = parser_make(&tokens[0], token_count);
 
   i32 token_count = 0;
   for (; 1; ++token_count)
@@ -45,10 +48,10 @@ parse_res parse_expr(str8 expr)
       "Found unknown token at character %d!", tokens[token_count].lexeme.start
     );
   }
-
-  printf("Finished lexing! Found %d tokens:\n", token_count);
-  for (i32 i = 0; i < token_count; ++i)
-    printf("%d ", tokens[i].token_type);
+  me_log("Lexing complete!");
+  
+  parser_parse(&parser, &nodes[0], 256);
+  me_log("Parsing complete!");
 
   return parse_res_make_success(420);
 }

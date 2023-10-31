@@ -5,6 +5,8 @@
 #include "str8.h"
 #include "os_utils.h"
 
+#include "lexer.h"
+
 typedef enum error_codes
 {
   ERROR_CODE_NO_ERROR,
@@ -13,6 +15,7 @@ typedef enum error_codes
   ERROR_CODE_INVALID_ARGUMENT,
   ERROR_CODE_INVALID_EXPRESSION,
   ERROR_CODE_INVALID_FILE_PATH,
+  ERROR_CODE_LEXING_UNKNOWN_TOKEN
 } error_codes;
 
 typedef struct parse_res
@@ -26,7 +29,27 @@ typedef struct parse_res
 
 parse_res parse_expr(str8 expr)
 {
-  printf("Expression (%d):\n%s\n", expr.length, expr.buffer);
+  lexer_t lexer = lexer_make(expr);
+
+  lex_token_t tokens[256];
+
+  i32 token_count = 0;
+  for (; 1; ++token_count)
+  {
+    tokens[token_count] = lexer_get_next_token(&lexer);
+    if (tokens[token_count].token_type == TOKEN_TYPE_EOF)
+      break;
+    
+    me_assert(tokens[token_count].token_type != TOKEN_TYPE_UNKNOWN_TOKEN,
+      ERROR_CODE_LEXING_UNKNOWN_TOKEN,
+      "Found unknown token at character %d!", tokens[token_count].lexeme.start
+    );
+  }
+
+  printf("Finished lexing! Found %d tokens:\n", token_count);
+  for (i32 i = 0; i < token_count; ++i)
+    printf("%d ", tokens[i].token_type);
+
   return parse_res_make_success(420);
 }
 

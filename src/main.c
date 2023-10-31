@@ -1,72 +1,14 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 
-typedef uint8_t i8;
-typedef uint16_t i16;
-typedef uint32_t i32;
-typedef uint64_t i64;
-
-typedef float f32;
-typedef double f64;
-
-typedef i8 b8;
-typedef i16 b16;
-typedef i32 b32;
-typedef i64 b64;
-
-#define me_assert(e, code, ...) if (!(e)) { \
-  fprintf(stderr, __VA_ARGS__); \
-  exit(code); \
-}
-#define me_log(format, ...) { \
-  fprintf(stderr, "%s:%d - ", __FILE__, __LINE__); \
-  fprintf(stderr, format, __VA_ARGS__); \
-  fprintf(stderr, "\n"); \
-}
-#define me_err(format, ...) { \
-  fprintf(stderr, "%s:%d - ", __FILE__, __LINE__); \
-  fprintf(stderr, format, __VA_ARGS__); \
-  fprintf(stderr, "\n"); \
-}
-#define me_output(format, ...) { \
-  fprintf(stdout, format, __VA_ARGS__); \
-  fprintf(stdout, "\n"); \
-}
-
-typedef struct str8
-{
-  char* str;
-  i32 length;
-} str8;
-
-#define str8_make(s) (str8) {s, strlen(s)}
-
-b8 str8_starts_with(str8 s, str8 cmp)
-{
-  if (cmp.length > s.length)
-    return 0;
-
-  for (i32 i = 0; i < s.length; ++i)
-  {
-    if (s.str[i] != cmp.str[i])
-      return 0;
-  }
-
-  return 1;
-}
-
-typedef struct str8_view
-{
-  char* str;
-  i32 start;
-  i32 end;
-} str8_view;
+#include "defines.h"
+#include "str8.h"
+#include "os_utils.h"
 
 typedef enum error_codes
 {
   ERROR_CODE_NO_ERROR,
+  ERROR_CODE_INTERNAL_ERROR,
   ERROR_CODE_NOT_ENOUGH_ARGUMENTS,
   ERROR_CODE_INVALID_ARGUMENT,
   ERROR_CODE_INVALID_EXPRESSION,
@@ -84,12 +26,44 @@ typedef struct parse_res
 
 parse_res parse_expr(str8 expr)
 {
+  printf("Expression (%d):\n%s\n", expr.length, expr.buffer);
   return parse_res_make_success(420);
 }
 
-str8 os_parse_file(str8 filepath)
+void parse_file(str8 filepath, str8* content)
 {
-  return filepath;
+  char fullpath_buf[256];
+  str8 fullpath = str8_make_buffer(fullpath_buf);
+  
+  char exe_buf[256];
+  str8 exe_path = str8_make_buffer(exe_buf);
+  
+  os_get_exe_path(&exe_path);
+  me_assert(exe_path.length != -1,
+    ERROR_CODE_INTERNAL_ERROR,
+    "Failed getting executable path...\nContact support ig?"
+  );
+
+  os_windowsify_path(&filepath);
+  os_rel_path(exe_path, filepath, &fullpath);
+  me_assert(fullpath.length != -1,
+    ERROR_CODE_INTERNAL_ERROR,
+    "Failed getting relative path...\nContact support ig?"
+  );
+  
+  u8 file_exists = os_file_exists(fullpath);
+  me_assert(file_exists == 1,
+    ERROR_CODE_INVALID_FILE_PATH,
+    "Specified filepath is invalid. " 
+    "It might not exist or it might be a directory.\n"
+    "Please check the filepath then run the command again."
+  );
+
+  os_read_file(fullpath, content);
+  me_assert(content->length != -1,
+    ERROR_CODE_INTERNAL_ERROR,
+    "Failed reading contents of file...\nContact support ig?"
+  );
 }
 
 int main(int argc, char** argv)
@@ -115,7 +89,15 @@ int main(int argc, char** argv)
     "Missing arguments!\nAppend --h for a help command!"
   );
   
-  s = bexpr ? str8_make(argv[2]) : os_parse_file(str8_make(argv[2]));
+  char filecontent_buf[4096];
+  if (bexpr)
+    s = str8_make(argv[2]);
+  else
+  {
+    s = str8_make_buffer(filecontent_buf);
+    parse_file(str8_make(argv[2]), &s);
+  }
+
   parse_res result = parse_expr(s);
   me_assert(result.error == 0, 
     result.error,

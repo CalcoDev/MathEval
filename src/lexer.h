@@ -4,6 +4,10 @@
 #include "defines.h"
 #include "str8.h"
 
+typedef struct lex_token_view_s lex_token_view_t;
+typedef struct lex_token_s lex_token_t;
+typedef struct lexer_s lexer_t;
+
 typedef enum lex_token_type_t
 {
   TOKEN_TYPE_EOF,
@@ -20,27 +24,29 @@ typedef enum lex_token_type_t
   TOKEN_TYPE_UNKNOWN_TOKEN
 } lex_token_type_t;
 
-typedef struct lex_token_view
+struct lex_token_view_s
 {
   i32 start;
   i32 end;
-} lex_token_view_t;
+};
 
-typedef struct lex_token
+struct lex_token_s
 {
   lex_token_type_t token_type;
   lex_token_view_t lexeme;
-} lex_token_t;
+};
 
-typedef struct lexer
+struct lexer_s
 {
   char* buffer;
   i32 start;
   i32 curr;
   i32 end;
-} lexer_t;
+};
 
-lexer_t lexer_make(str8 buffer);
+// TODO(calco): Kinda redundant to have 2 functions but eh
+b8 lexer_estimate_token_count(lexer_t* lexer, i32* out_cnt);
+void lexer_tokenize(lexer_t* lexer, lex_token_t* out_tokens);
 lex_token_t lexer_get_next_token(lexer_t* lexer);
 
 #endif

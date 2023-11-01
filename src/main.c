@@ -8,22 +8,11 @@
 #include "lexer.h"
 #include "parser.h"
 
-typedef enum error_codes
-{
-  ERROR_CODE_NO_ERROR,
-  ERROR_CODE_INTERNAL_ERROR,
-  ERROR_CODE_NOT_ENOUGH_ARGUMENTS,
-  ERROR_CODE_INVALID_ARGUMENT,
-  ERROR_CODE_INVALID_EXPRESSION,
-  ERROR_CODE_INVALID_FILE_PATH,
-  ERROR_CODE_LEXING_UNKNOWN_TOKEN
-} error_codes;
-
-typedef struct parse_res
+typedef struct
 {
   f32 value;
   error_codes error;
-} parse_res;
+} result_t;
 
 #define parse_res_make_error(code) (parse_res) {-1.f, code}
 #define parse_res_make_success(value) (parse_res) {value, ERROR_CODE_NO_ERROR}
@@ -71,24 +60,19 @@ error:
   return str8_empty();
 }
 
-parse_res parse_expr(str8 expr)
+result_t parse_expr(str8 expr)
 {
-  lex_token_t tokens[256];
-  lexer_t lexer = lexer_make(expr);
+  lexer_t lexer = (lexer_t) { buffer.buffer, 0, 0, buffer.length };
+  
+  i32 token_count;
+  me_assert(lexer_estimate_token_count(&lexer, &token_count) != -1,
+    ERROR_CODE_LEXING_UNKNOWN_TOKEN,
+    "Tokenization failed!\nFound unknown token " str8_fmt " at character %d",
+    str8_arg, token_count
+  );
 
-  i32 token_count = 0;
-  for (; 1; ++token_count)
-  {
-    tokens[token_count] = lexer_get_next_token(&lexer);
-    if (tokens[token_count].token_type == TOKEN_TYPE_EOF)
-      break;
-    
-    me_assert(tokens[token_count].token_type != TOKEN_TYPE_UNKNOWN_TOKEN,
-      ERROR_CODE_LEXING_UNKNOWN_TOKEN,
-      "Found unknown token at character %d!", tokens[token_count].lexeme.start
-    );
-  }
-  me_log("Lexing complete!");
+  lex_token_t* tokens = (lex_token_t*)(malloc(token_count * sizeof(lex_token_t)));
+  lexer_tokenize(&lexer, tokens);
   
   parser_node_t nodes[256]; 
   parser_t parser = parser_make(&tokens[0], token_count);

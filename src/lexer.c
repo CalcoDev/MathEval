@@ -1,8 +1,38 @@
 #include "lexer.h"
 
-lexer_t lexer_make(str8 buffer)
+b8 lexer_estimate_token_count(lexer_t* lexer, i32* out_cnt)
 {
-  return (lexer_t) { buffer.buffer, 0, 0, buffer.length };
+  i32 token_count = 0;
+  for (; 1; ++token_count)
+  {
+    lex_token_t token = lexer_get_next_token(&lexer);
+    if (token.token_type == TOKEN_TYPE_EOF)
+      break;
+    
+    if (token.token_type == TOKEN_TYPE_UNKNOWN_TOKEN)
+    {
+      if (out_cnt)
+        *out_cnt = token.lexeme.start;
+
+      return -1;
+    }
+  }
+
+  if (out_cnt)
+    *out_cnt = token_count;
+
+  return 1;
+}
+
+void lexer_tokenize(lexer_t* lexer, lex_token_t* out_tokens)
+{
+  i32 token_count;
+  for (; 1; ++token_count)
+  {
+    out_tokens[token_count] = lexer_get_next_token(&lexer);
+    if (out_tokens[token_count].token_type == TOKEN_TYPE_EOF)
+      break;
+  }
 }
 
 lex_token_t lexer_make_token(lexer_t* lexer, lex_token_type_t type)

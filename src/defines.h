@@ -22,6 +22,18 @@ typedef i16 b16;
 typedef i32 b32;
 typedef i64 b64;
 
+typedef enum
+{
+  ERROR_CODE_NO_ERROR,
+  ERROR_CODE_INTERNAL_ERROR,
+  ERROR_CODE_NOT_ENOUGH_ARGUMENTS,
+  ERROR_CODE_INVALID_ARGUMENT,
+  ERROR_CODE_INVALID_EXPRESSION,
+  ERROR_CODE_INVALID_FILE_PATH,
+  ERROR_CODE_LEXING_UNKNOWN_TOKEN
+} error_codes_t;
+
+
 #define me_assert(e, code, ...) if (!(e)) { \
   fprintf(stderr, __VA_ARGS__); \
   exit(code); \

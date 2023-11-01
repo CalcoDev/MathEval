@@ -11,6 +11,9 @@ typedef struct str8
   i32 length;
 } str8;
 
+#define str8_fmt "%.*s"
+#define str8_arg(s) (s).length, (s).buffer
+
 #define str8_empty() (str8) {NULL, 0};
 
 #define str8_make(s) (str8) {s, strlen(s)}

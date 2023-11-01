@@ -7,16 +7,11 @@
 
 typedef struct str8
 {
-  char* buffer;
+  const char* buffer;
   i32 length;
 } str8;
 
-typedef struct str8_view
-{
-  char* buffer;
-  i32 start;
-  i32 end;
-} str8_view;
+#define str8_empty() (str8) {NULL, 0};
 
 #define str8_make(s) (str8) {s, strlen(s)}
 #define str8_make_buffer(buffer) (str8) {buffer, sizeof(buffer)}

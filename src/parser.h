@@ -5,7 +5,10 @@
 #include "str8.h"
 #include "lexer.h"
 
-typedef enum parser_node_type_t
+typedef struct parser_node_s parser_node_t;
+typedef struct parser_s parser_t;
+
+typedef enum
 {
   NODE_TYPE_NUMBER,
   NODE_TYPE_PLUS,
@@ -18,7 +21,7 @@ typedef enum parser_node_type_t
   NODE_TYPE_PAREN_GROUP
 } parser_node_type_t;
 
-typedef struct parser_node_t
+struct parser_node_s
 {
   parser_node_type_t node_type;
   parser_node_t* parent;
@@ -35,13 +38,13 @@ typedef struct parser_node_t
       parser_node_type_t* right;
     } binary;
   } value;
-} parser_node_t;
+};
 
-typedef struct parser_t
+struct parser_s
 {
   lex_token_t* tokens;
   i32 token_count;
-} parser_t;
+};
 
 #define parser_make(token_buf, token_cnt) (parser_t) { token_buf, token_cnt };
 

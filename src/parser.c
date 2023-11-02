@@ -61,9 +61,29 @@ parser_node_t* parse_binary_expression(parser_t* parser,
   return lhs;
 }
 
+parser_node_t* parse_expression(parser_t* parser);
+parser_node_t* parse_paren(parser_t* parser)
+{
+  parse_node_type(parser, TOKEN_TYPE_OPEN_PAREN);
+  parser_node_t* node = parse_expression(parser);
+  parse_node_type(parser, TOKEN_TYPE_CLOSE_PAREN);
+  return node;
+}
+
 parser_node_t* parse_numeric_literal(parser_t* parser)
 {
   return parse_node_type(parser, TOKEN_TYPE_NUMBER);
+}
+
+parser_node_t* parse_primary_expression(parser_t* parser)
+{
+  if (parser->lookahead->token_type == TOKEN_TYPE_NUMBER)
+    return parse_numeric_literal(parser);
+  else if (parser->lookahead->token_type == TOKEN_TYPE_OPEN_PAREN)
+    return parse_paren(parser);
+  
+  c_assert(0, "Unreachable. Primary expression was neither parentheses, nor a numeric literal!");
+  return NULL;
 }
 
 b8 get_exp_expr(lex_token_type_t token_type)
@@ -72,7 +92,7 @@ b8 get_exp_expr(lex_token_type_t token_type)
 }
 parser_node_t* parse_exponent_expressions(parser_t* parser)
 {
-  return parse_binary_expression(parser, parse_numeric_literal, get_exp_expr);
+  return parse_binary_expression(parser, parse_primary_expression, get_exp_expr);
 }
 
 b8 get_mult_expr(lex_token_type_t token_type)
@@ -93,10 +113,16 @@ parser_node_t* parse_additive_expressions(parser_t* parser)
   return parse_binary_expression(parser, parse_multiplicative_expressions, get_add_expr);
 }
 
+parser_node_t* parse_expression(parser_t* parser)
+{
+  return parse_additive_expressions(parser);
+}
+
 parser_node_t* parser_parse(parser_t* parser, parser_node_t* out_nodes, i32* count)
 {
   _out_nodes = out_nodes;
-  parser_node_t* node = parse_additive_expressions(parser);
+  parser->lookahead = &parser->tokens[0];
+  parser_node_t* node = parse_expression(parser);
   _out_nodes = NULL;
   return node;
 }
@@ -170,9 +196,9 @@ parser_node_t parser_get_next_node(parser_t* parser)
     case TOKEN_TYPE_LOG:
       break;
     case TOKEN_TYPE_OPEN_PAREN:
-      break;
+      return parser_make_binary(parser, TOKEN_TYPE_OPEN_PAREN);
     case TOKEN_TYPE_CLOSE_PAREN:
-      break;
+      return parser_make_binary(parser, TOKEN_TYPE_CLOSE_PAREN);
     case TOKEN_TYPE_UNKNOWN_TOKEN:
       break;
     default:

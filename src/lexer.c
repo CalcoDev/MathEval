@@ -1,5 +1,7 @@
 #include "lexer.h"
 
+#include <ctype.h>
+
 operator_type_t lex_token_get_op_type(lex_token_type_t node)
 {
   switch (node)
@@ -20,6 +22,10 @@ operator_type_t lex_token_get_op_type(lex_token_type_t node)
       return OPERATOR_UNARY;
     case TOKEN_TYPE_LOG:
       return OPERATOR_UNARY;
+    case TOKEN_TYPE_OPEN_PAREN:
+      return OPERATOR_NO;
+    case TOKEN_TYPE_CLOSE_PAREN:
+      return OPERATOR_NO;
     case TOKEN_TYPE_EOF:
       return OPERATOR_NO;
     default:
@@ -99,7 +105,7 @@ lex_token_t lexer_get_next_token(lexer_t* lexer)
 
   if (char_is_number(lexeme.buffer[0]))
   {
-    for (; lexer->buffer[lexer->curr] != ' ' && lexer->buffer[lexer->curr] != '\0'; ++lexer->curr);
+    for (; isdigit(lexer->buffer[lexer->curr]) || lexer->buffer[lexer->curr] == '.'; ++lexer->curr);
     return lexer_make_token(lexer, TOKEN_TYPE_NUMBER);
   }
   if (str8_starts_with(lexeme, str8_make("sqrt")))

@@ -35,34 +35,62 @@ parser_node_t* parse_node_operator_type(parser_t* parser, operator_type_t type)
   return operator;
 }
 
-parser_node_t* parse_additive_expressions(parser_t* parser)
+typedef parser_node_t* getx_bexp_lhs_func(parser_t* parser);
+typedef b8 get_bexp_continue_func(lex_token_type_t token_type);
+parser_node_t* parse_binary_expression(parser_t* parser, 
+  getx_bexp_lhs_func* get_lhs, get_bexp_continue_func* get_bexp_continue)
 {
-  parser_node_t* lhs = parse_node_type(parser, TOKEN_TYPE_NUMBER);
+  parser_node_t* lhs = get_lhs(parser);
   if (parser->token_count < 2)
     return lhs;
   parser_node_t* op = NULL;
   parser_node_t* rhs = NULL;
 
-  lex_token_type_t lex_type = parser->lookahead->token_type;
-  operator_type_t op_type = lex_token_get_op_type(lex_type);
-  while (op_type == OPERATOR_BINARY &&
-    (lex_type == TOKEN_TYPE_PLUS || lex_type == TOKEN_TYPE_MINUS))
+  while (lex_token_get_op_type(parser->lookahead->token_type) == OPERATOR_BINARY
+    && get_bexp_continue(parser->lookahead->token_type))
   {
     op = parse_node_operator_type(parser, OPERATOR_BINARY);
-    rhs = parse_node_type(parser, TOKEN_TYPE_NUMBER);
-
+    rhs = get_lhs(parser);
     op->as.binary.left = lhs;
     op->as.binary.right = rhs;
     lhs->parent = op;
     rhs->parent = op;
-
     lhs = op;
-
-    lex_type = parser->lookahead->token_type;
-    op_type = lex_token_get_op_type(lex_type);
   }
 
   return lhs;
+}
+
+parser_node_t* parse_numeric_literal(parser_t* parser)
+{
+  return parse_node_type(parser, TOKEN_TYPE_NUMBER);
+}
+
+b8 get_exp_expr(lex_token_type_t token_type)
+{
+  return token_type == TOKEN_TYPE_EXP;
+}
+parser_node_t* parse_exponent_expressions(parser_t* parser)
+{
+  return parse_binary_expression(parser, parse_numeric_literal, get_exp_expr);
+}
+
+b8 get_mult_expr(lex_token_type_t token_type)
+{
+  return token_type == TOKEN_TYPE_MULT || token_type == TOKEN_TYPE_DIV;
+}
+parser_node_t* parse_multiplicative_expressions(parser_t* parser)
+{
+  return parse_binary_expression(parser, parse_exponent_expressions, get_mult_expr);
+}
+
+b8 get_add_expr(lex_token_type_t token_type)
+{
+  return token_type == TOKEN_TYPE_PLUS || token_type == TOKEN_TYPE_MINUS;
+}
+parser_node_t* parse_additive_expressions(parser_t* parser)
+{
+  return parse_binary_expression(parser, parse_multiplicative_expressions, get_add_expr);
 }
 
 parser_node_t* parser_parse(parser_t* parser, parser_node_t* out_nodes, i32* count)
@@ -129,16 +157,14 @@ parser_node_t parser_get_next_node(parser_t* parser)
       return parser_make_numeric(parser, value);
     case TOKEN_TYPE_PLUS:
       return parser_make_binary(parser, TOKEN_TYPE_PLUS);
-      break;
     case TOKEN_TYPE_MINUS:
       return parser_make_binary(parser, TOKEN_TYPE_MINUS);
-      break;
     case TOKEN_TYPE_MULT:
-      break;
+      return parser_make_binary(parser, TOKEN_TYPE_MULT);
     case TOKEN_TYPE_DIV:
-      break;
+      return parser_make_binary(parser, TOKEN_TYPE_DIV);
     case TOKEN_TYPE_EXP:
-      break;
+      return parser_make_binary(parser, TOKEN_TYPE_EXP);
     case TOKEN_TYPE_SQRT:
       break;
     case TOKEN_TYPE_LOG:

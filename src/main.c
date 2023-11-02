@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "defines.h"
 #include "str8.h"
@@ -82,6 +83,12 @@ f32 evaluate_ast(parser_node_t* node)
       return evaluate_ast(node->as.binary.left) + evaluate_ast(node->as.binary.right);
     case TOKEN_TYPE_MINUS:
       return evaluate_ast(node->as.binary.left) - evaluate_ast(node->as.binary.right);
+    case TOKEN_TYPE_MULT:
+      return evaluate_ast(node->as.binary.left) * evaluate_ast(node->as.binary.right);
+    case TOKEN_TYPE_DIV:
+      return evaluate_ast(node->as.binary.left) / evaluate_ast(node->as.binary.right);
+    case TOKEN_TYPE_EXP:
+      return powf(evaluate_ast(node->as.binary.left), evaluate_ast(node->as.binary.right));
     default:
       c_assert(0, "Unimplemented!");
       break;

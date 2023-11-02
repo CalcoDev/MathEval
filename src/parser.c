@@ -45,7 +45,8 @@ parser_node_t* parse_additive_expressions(parser_t* parser)
 
   lex_token_type_t lex_type = parser->lookahead->token_type;
   operator_type_t op_type = lex_token_get_op_type(lex_type);
-  while (op_type == OPERATOR_BINARY && lex_type == TOKEN_TYPE_PLUS)
+  while (op_type == OPERATOR_BINARY &&
+    (lex_type == TOKEN_TYPE_PLUS || lex_type == TOKEN_TYPE_MINUS))
   {
     op = parse_node_operator_type(parser, OPERATOR_BINARY);
     rhs = parse_node_type(parser, TOKEN_TYPE_NUMBER);
@@ -125,9 +126,10 @@ parser_node_t parser_get_next_node(parser_t* parser)
       );
       return parser_make_numeric(parser, value);
     case TOKEN_TYPE_PLUS:
-    return parser_make_binary(parser, TOKEN_TYPE_PLUS);
+      return parser_make_binary(parser, TOKEN_TYPE_PLUS);
       break;
     case TOKEN_TYPE_MINUS:
+      return parser_make_binary(parser, TOKEN_TYPE_MINUS);
       break;
     case TOKEN_TYPE_MULT:
       break;

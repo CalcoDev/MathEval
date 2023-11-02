@@ -80,6 +80,8 @@ f32 evaluate_ast(parser_node_t* node)
       return node->as.number;
     case TOKEN_TYPE_PLUS:
       return evaluate_ast(node->as.binary.left) + evaluate_ast(node->as.binary.right);
+    case TOKEN_TYPE_MINUS:
+      return evaluate_ast(node->as.binary.left) - evaluate_ast(node->as.binary.right);
     default:
       c_assert(0, "Unimplemented!");
       break;

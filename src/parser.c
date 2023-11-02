@@ -86,13 +86,35 @@ parser_node_t* parse_primary_expression(parser_t* parser)
   return NULL;
 }
 
+parser_node_t* parse_unary_expression(parser_t* parser)
+{
+  parser_node_t* op = NULL;
+  parser_node_t* rhs = NULL;
+
+  c_assert(parser->lookahead != NULL, "Unexpected end of input.");
+
+  if (lex_token_get_op_type(parser->lookahead->token_type) == OPERATOR_UNARY)
+  {
+    op = parse_node_operator_type(parser, OPERATOR_UNARY);
+    rhs = parse_primary_expression(parser);
+
+    op->as.unary.down = rhs;
+    rhs->parent = op;
+    return op;
+  }
+  else
+  {
+    return parse_primary_expression(parser);
+  }
+}
+
 b8 get_exp_expr(lex_token_type_t token_type)
 {
   return token_type == TOKEN_TYPE_EXP;
 }
 parser_node_t* parse_exponent_expressions(parser_t* parser)
 {
-  return parse_binary_expression(parser, parse_primary_expression, get_exp_expr);
+  return parse_binary_expression(parser, parse_unary_expression, get_exp_expr);
 }
 
 b8 get_mult_expr(lex_token_type_t token_type)
@@ -127,25 +149,7 @@ parser_node_t* parser_parse(parser_t* parser, parser_node_t* out_nodes, i32* cou
   return node;
 }
 
-parser_node_t parser_make_numeric(parser_t* parser, f32 value)
-{
-  return (parser_node_t) {
-    .parent = NULL,
-    .node_type = TOKEN_TYPE_NUMBER,
-    .as.number = value
-  };
-}
-
-parser_node_t parser_make_unary(parser_t* parser, lex_token_type_t type)
-{
-  return (parser_node_t) {
-    .parent = NULL,
-    .node_type = type,
-    .as.unary.down = NULL
-  };
-}
-
-parser_node_t parser_make_binary(parser_t* parser, lex_token_type_t type)
+parser_node_t parser_make_type(parser_t* parser, lex_token_type_t type)
 {
   return (parser_node_t) {
     .parent = NULL,
@@ -180,25 +184,29 @@ parser_node_t parser_get_next_node(parser_t* parser)
         1,
         "Error parsing numeric token!"
       );
-      return parser_make_numeric(parser, value);
+      return (parser_node_t) {
+        .parent = NULL,
+        .node_type = TOKEN_TYPE_NUMBER,
+        .as.number = value
+      };;
     case TOKEN_TYPE_PLUS:
-      return parser_make_binary(parser, TOKEN_TYPE_PLUS);
+      return parser_make_type(parser, TOKEN_TYPE_PLUS);
     case TOKEN_TYPE_MINUS:
-      return parser_make_binary(parser, TOKEN_TYPE_MINUS);
+      return parser_make_type(parser, TOKEN_TYPE_MINUS);
     case TOKEN_TYPE_MULT:
-      return parser_make_binary(parser, TOKEN_TYPE_MULT);
+      return parser_make_type(parser, TOKEN_TYPE_MULT);
     case TOKEN_TYPE_DIV:
-      return parser_make_binary(parser, TOKEN_TYPE_DIV);
+      return parser_make_type(parser, TOKEN_TYPE_DIV);
     case TOKEN_TYPE_EXP:
-      return parser_make_binary(parser, TOKEN_TYPE_EXP);
+      return parser_make_type(parser, TOKEN_TYPE_EXP);
     case TOKEN_TYPE_SQRT:
-      break;
+      return parser_make_type(parser, TOKEN_TYPE_SQRT);
     case TOKEN_TYPE_LOG:
-      break;
+      return parser_make_type(parser, TOKEN_TYPE_LOG);
     case TOKEN_TYPE_OPEN_PAREN:
-      return parser_make_binary(parser, TOKEN_TYPE_OPEN_PAREN);
+      return parser_make_type(parser, TOKEN_TYPE_OPEN_PAREN);
     case TOKEN_TYPE_CLOSE_PAREN:
-      return parser_make_binary(parser, TOKEN_TYPE_CLOSE_PAREN);
+      return parser_make_type(parser, TOKEN_TYPE_CLOSE_PAREN);
     case TOKEN_TYPE_UNKNOWN_TOKEN:
       break;
     default:

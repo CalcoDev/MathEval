@@ -110,20 +110,12 @@ lex_token_t lexer_get_next_token(lexer_t* lexer)
   }
   if (str8_starts_with(lexeme, str8_make("sqrt")))
   {
-    for (; lexer->buffer[lexer->curr] != ' '; ++lexer->curr)
-    {
-      if (lexer->buffer[lexer->curr] == '\0')
-        c_assert(0, "Unexpected EOF while reading sqrt!");
-    }
+    lexer->curr += 4;
     return lexer_make_token(lexer, TOKEN_TYPE_SQRT);
   }
   if (str8_starts_with(lexeme, str8_make("log")))
   {
-    for (; lexer->buffer[lexer->curr] != ' '; ++lexer->curr)
-    {
-      if (lexer->buffer[lexer->curr] == '\0')
-        c_assert(0, "Unexpected EOF while reading log!");
-    }
+    lexer->curr += 3;
     return lexer_make_token(lexer, TOKEN_TYPE_LOG);
   }
 

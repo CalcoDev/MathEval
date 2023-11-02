@@ -89,6 +89,10 @@ f32 evaluate_ast(parser_node_t* node)
       return evaluate_ast(node->as.binary.left) / evaluate_ast(node->as.binary.right);
     case TOKEN_TYPE_EXP:
       return powf(evaluate_ast(node->as.binary.left), evaluate_ast(node->as.binary.right));
+    case TOKEN_TYPE_SQRT:
+      return sqrtf(evaluate_ast(node->as.unary.down));
+    case TOKEN_TYPE_LOG:
+      return logf(evaluate_ast(node->as.unary.down));
     default:
       c_assert(0, "Unimplemented!");
       break;

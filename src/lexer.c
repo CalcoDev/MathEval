@@ -5,7 +5,7 @@ b8 lexer_estimate_token_count(lexer_t* lexer, i32* out_cnt)
   i32 token_count = 0;
   for (; 1; ++token_count)
   {
-    lex_token_t token = lexer_get_next_token(&lexer);
+    lex_token_t token = lexer_get_next_token(lexer);
     if (token.token_type == TOKEN_TYPE_EOF)
       break;
     
@@ -26,10 +26,13 @@ b8 lexer_estimate_token_count(lexer_t* lexer, i32* out_cnt)
 
 void lexer_tokenize(lexer_t* lexer, lex_token_t* out_tokens)
 {
-  i32 token_count;
+  lexer->curr = 0;
+  lexer->start = 0;
+
+  i32 token_count = 0;
   for (; 1; ++token_count)
   {
-    out_tokens[token_count] = lexer_get_next_token(&lexer);
+    out_tokens[token_count] = lexer_get_next_token(lexer);
     if (out_tokens[token_count].token_type == TOKEN_TYPE_EOF)
       break;
   }

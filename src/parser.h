@@ -26,18 +26,18 @@ struct parser_node_s
   parser_node_type_t node_type;
   parser_node_t* parent;
 
-  union value {
-    f32 numeric_value;
-    struct unary
+  union {
+    f32 number;
+    struct
     {
       parser_node_type_t* down;
     } unary;
-    struct binary
+    struct
     {
       parser_node_type_t* left;
       parser_node_type_t* right;
     } binary;
-  } value;
+  } as;
 };
 
 struct parser_s
@@ -46,8 +46,7 @@ struct parser_s
   i32 token_count;
 };
 
-#define parser_make(token_buf, token_cnt) (parser_t) { token_buf, token_cnt };
-
-parser_node_t* parser_parse(parser_t* parser, parser_node_t* nodes, i32 count);
+parser_node_t* parser_parse(parser_t* parser, parser_node_t* out_nodes, i32* count);
+parser_node_t parser_get_next_token(parser_t* lexer);
 
 #endif

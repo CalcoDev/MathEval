@@ -1,16 +1,13 @@
 #include "parser.h"
 
-parser_node_t* parser_parse(parser_t* parser, parser_node_t* nodes, i32 count)
+parser_node_t* parser_parse(parser_t* parser, parser_node_t* out_nodes, i32* count)
 {
-  // parser_node_t* t = &nodes[0];
+  // get the left 
 
-  // i32 node_idx = 1;
-  // i32 token_idx = 0;
-  // for (; token_idx < parser->token_count; ++token_idx)
-  // {
-  //   if (parser->tokens[token_idx].token_type == TOKEN_TYPE_EOF)
-  //     break;
+  return NULL;
+}
 
-  //   parser_node_t* curr = &nodes[node_idx];
-  // }
+parser_node_t parser_get_next_token(parser_t* lexer)
+{
+  return (parser_node_t) {0};
 }

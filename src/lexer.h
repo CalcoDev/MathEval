@@ -38,7 +38,7 @@ struct lex_token_s
 
 struct lexer_s
 {
-  char* buffer;
+  const char* buffer;
   i32 start;
   i32 curr;
   i32 end;

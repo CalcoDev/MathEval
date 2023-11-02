@@ -8,14 +8,25 @@
 #include "lexer.h"
 #include "parser.h"
 
+typedef enum
+{
+  ERROR_CODE_NO_ERROR,
+  ERROR_CODE_INTERNAL_ERROR,
+  ERROR_CODE_NOT_ENOUGH_ARGUMENTS,
+  ERROR_CODE_INVALID_ARGUMENT,
+  ERROR_CODE_INVALID_EXPRESSION,
+  ERROR_CODE_INVALID_FILE_PATH,
+  ERROR_CODE_LEXING_UNKNOWN_TOKEN
+} error_codes_t;
+
 typedef struct
 {
   f32 value;
-  error_codes error;
+  error_codes_t error;
 } result_t;
 
-#define parse_res_make_error(code) (parse_res) {-1.f, code}
-#define parse_res_make_success(value) (parse_res) {value, ERROR_CODE_NO_ERROR}
+#define res_make_error(code) (result_t) {-1.f, code}
+#define res_make_success(value) (result_t) {value, ERROR_CODE_NO_ERROR}
 
 str8 slurp_file(char* path)
 {
@@ -60,26 +71,41 @@ error:
   return str8_empty();
 }
 
-result_t parse_expr(str8 expr)
+result_t parse_expr(str8* expr)
 {
-  lexer_t lexer = (lexer_t) { buffer.buffer, 0, 0, buffer.length };
+  lexer_t lexer = (lexer_t) { expr->buffer, 0, 0, expr->length };
   
   i32 token_count;
   me_assert(lexer_estimate_token_count(&lexer, &token_count) != -1,
     ERROR_CODE_LEXING_UNKNOWN_TOKEN,
-    "Tokenization failed!\nFound unknown token " str8_fmt " at character %d",
-    str8_arg, token_count
+    "Tokenization failed!\nFound unknown token at character %d", token_count
   );
 
-  lex_token_t* tokens = (lex_token_t*)(malloc(token_count * sizeof(lex_token_t)));
+  lex_token_t* tokens = (lex_token_t*)
+    (malloc(token_count * sizeof(lex_token_t)));
+  me_assert(tokens != NULL, 
+    ERROR_CODE_INTERNAL_ERROR, 
+    "Error allocating token memory!"
+  );
+
+  parser_node_t* nodes = (parser_node_t*)
+    (malloc(token_count * sizeof(parser_node_t)));
+  me_assert(nodes != NULL, 
+    ERROR_CODE_INTERNAL_ERROR, 
+    "Error allocating node memory!"
+  );
+  
   lexer_tokenize(&lexer, tokens);
   
-  parser_node_t nodes[256]; 
-  parser_t parser = parser_make(&tokens[0], token_count);
-  parser_parse(&parser, &nodes[0], 256);
-  me_log("Parsing complete!");
+  parser_t parser = (parser_t) { tokens, token_count };
+  parser_node_t* head = parser_parse(&parser, nodes, NULL);
 
-  return parse_res_make_success(420);
+  // TODO(calco): Evaluate AST
+
+  free(tokens);
+  free(nodes);
+
+  return res_make_success(420);
 }
 
 int main(int argc, char** argv)
@@ -109,7 +135,7 @@ int main(int argc, char** argv)
     "(if the --f flag was provided, please check the filepath and try again!)"
   );
 
-  parse_res result = parse_expr(s);
+  result_t result = parse_expr(&s);
 
   // Should always be true.
   if (s.buffer)

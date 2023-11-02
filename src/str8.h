@@ -24,4 +24,6 @@ b8 char_is_number(char c);
 b8 str8_starts_with(str8 s, str8 cmp);
 b8 str8_equals(str8 s, str8 cmp);
 
+b8 str8_to_number(str8 s, f32* value);
+
 #endif

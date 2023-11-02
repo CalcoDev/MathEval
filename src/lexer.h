@@ -30,6 +30,11 @@ struct lex_token_view_s
   i32 end;
 };
 
+#define lex_token_view_to_str8(buffer, view) (str8) { \
+  (const char*) ((u8*)buffer + view.start), \
+  view.end \
+}
+
 struct lex_token_s
 {
   lex_token_type_t token_type;

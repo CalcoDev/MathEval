@@ -18,7 +18,8 @@ typedef enum
   NODE_TYPE_EXP,
   NODE_TYPE_SQRT,
   NODE_TYPE_LOG,
-  NODE_TYPE_PAREN_GROUP
+  NODE_TYPE_PAREN_GROUP,
+  NODE_TYPE_EOF
 } parser_node_type_t;
 
 struct parser_node_s
@@ -42,11 +43,12 @@ struct parser_node_s
 
 struct parser_s
 {
+  const char* buffer;
   lex_token_t* tokens;
   i32 token_count;
 };
 
 parser_node_t* parser_parse(parser_t* parser, parser_node_t* out_nodes, i32* count);
-parser_node_t parser_get_next_token(parser_t* lexer);
+parser_node_t parser_get_next_token(parser_t* parser);
 
 #endif

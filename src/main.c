@@ -44,7 +44,7 @@ str8 slurp_file(char* path)
   if (slen < 0)
     goto error;
   
-  sbuf = malloc(slen);
+  sbuf = malloc(slen + 1);
   if (sbuf == NULL)
     goto error;
   
@@ -54,6 +54,7 @@ str8 slurp_file(char* path)
   u64 n = fread(sbuf, 1, slen, f);
   if (n != (u64) slen)
     goto error;
+  sbuf[slen] = '\0';
   
   if (ferror(f))
     goto error;
@@ -71,9 +72,29 @@ error:
   return str8_empty();
 }
 
+f32 evaluate_ast(parser_node_t* node)
+{
+  switch (node->node_type)
+  {
+    case NODE_TYPE_NUMBER:
+      return node->as.number;
+    default:
+      c_assert(0, "Unimplemented!");
+      break;
+  }
+
+  c_assert(0, "Unreachable!");
+  return 0;
+}
+
 result_t parse_expr(str8* expr)
 {
-  lexer_t lexer = (lexer_t) { expr->buffer, 0, 0, expr->length };
+  lexer_t lexer = (lexer_t) { 
+    .buffer = expr->buffer, 
+    .start = 0,
+    .curr = 0,
+    .end = expr->length
+  };
   
   i32 token_count;
   me_assert(lexer_estimate_token_count(&lexer, &token_count) != -1,
@@ -97,15 +118,20 @@ result_t parse_expr(str8* expr)
   
   lexer_tokenize(&lexer, tokens);
   
-  parser_t parser = (parser_t) { tokens, token_count };
+  parser_t parser = (parser_t) { 
+    .buffer = expr->buffer,
+    .tokens = tokens,
+    .token_count = token_count
+  };
   parser_node_t* head = parser_parse(&parser, nodes, NULL);
 
   // TODO(calco): Evaluate AST
+  f32 value = evaluate_ast(head);
 
   free(tokens);
   free(nodes);
 
-  return res_make_success(420);
+  return res_make_success(value);
 }
 
 int main(int argc, char** argv)

@@ -40,12 +40,15 @@ void lexer_tokenize(lexer_t* lexer, lex_token_t* out_tokens)
 
 lex_token_t lexer_make_token(lexer_t* lexer, lex_token_type_t type)
 {
+  i32 start = lexer->start;
+  i32 curr = lexer->curr;
+  
   lexer->start = lexer->curr;
-  return (lex_token_t) { 
-    type, 
-    (lex_token_view_t) { 
-      lexer->start, 
-      lexer->curr 
+  return (lex_token_t) {
+    .token_type = type,
+    .lexeme = (lex_token_view_t) {
+      .start = start,
+      .end = curr
     } 
   };
 }
@@ -66,17 +69,25 @@ lex_token_t lexer_get_next_token(lexer_t* lexer)
 
   if (char_is_number(lexeme.buffer[0]))
   {
-    for (; lexer->buffer[lexer->curr] != ' '; ++lexer->curr);
+    for (; lexer->buffer[lexer->curr] != ' ' && lexer->buffer[lexer->curr] != '\0'; ++lexer->curr);
     return lexer_make_token(lexer, TOKEN_TYPE_NUMBER);
   }
   if (str8_starts_with(lexeme, str8_make("sqrt")))
   {
-    for (; lexer->buffer[lexer->curr] != ' '; ++lexer->curr);
+    for (; lexer->buffer[lexer->curr] != ' '; ++lexer->curr)
+    {
+      if (lexer->buffer[lexer->curr] == '\0')
+        c_assert(0, "Unexpected EOF while reading sqrt!");
+    }
     return lexer_make_token(lexer, TOKEN_TYPE_SQRT);
   }
   if (str8_starts_with(lexeme, str8_make("log")))
   {
-    for (; lexer->buffer[lexer->curr] != ' '; ++lexer->curr);
+    for (; lexer->buffer[lexer->curr] != ' '; ++lexer->curr)
+    {
+      if (lexer->buffer[lexer->curr] == '\0')
+        c_assert(0, "Unexpected EOF while reading log!");
+    }
     return lexer_make_token(lexer, TOKEN_TYPE_LOG);
   }
 

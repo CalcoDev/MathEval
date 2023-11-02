@@ -1,6 +1,7 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -26,6 +27,12 @@ typedef i64 b64;
   fprintf(stderr, __VA_ARGS__); \
   exit(code); \
 }
+#define c_assert(e, ...) if (!(e)) { \
+  fprintf(stderr, "Assertion failed in file %s, line %d.\n", __FILE__, __LINE__); \
+  fprintf(stderr, __VA_ARGS__); \
+  exit(1); \
+}
+
 #define me_log(format, ...) { \
   fprintf(stderr, "%s:%d - ", __FILE__, __LINE__); \
   fprintf(stderr, format, __VA_ARGS__); \

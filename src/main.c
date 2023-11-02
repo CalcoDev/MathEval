@@ -105,6 +105,7 @@ result_t parse_expr(str8* expr)
     ERROR_CODE_LEXING_UNKNOWN_TOKEN,
     "Tokenization failed!\nFound unknown token at character %d", token_count
   );
+  token_count += 1;
 
   lex_token_t* tokens = (lex_token_t*)
     malloc(token_count * sizeof(lex_token_t));
@@ -131,8 +132,8 @@ result_t parse_expr(str8* expr)
 
   f32 value = evaluate_ast(head);
 
-  free(tokens);
-  free(nodes);
+  free((void*) tokens);
+  free((void*) nodes);
 
   return res_make_success(value);
 }

@@ -68,7 +68,9 @@ parser_node_t* parse_additive_expressions(parser_t* parser)
 parser_node_t* parser_parse(parser_t* parser, parser_node_t* out_nodes, i32* count)
 {
   _out_nodes = out_nodes;
-  return parse_additive_expressions(parser);
+  parser_node_t* node = parse_additive_expressions(parser);
+  _out_nodes = NULL;
+  return node;
 }
 
 parser_node_t parser_make_numeric(parser_t* parser, f32 value)

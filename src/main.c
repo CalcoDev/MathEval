@@ -196,7 +196,7 @@ help:
     "A random math expression evaluator.\n"
     "\n\n"
     "Example usage:\n"
-    "/path/to/math_eval --e \"0.5 + log(12, 1 / ( sqrt(9^3) ) )\"\n"
+    "/path/to/math_eval --e \"0.5 + log(1 / ( sqrt(9^3) ) )\"\n"
     "\n\n"
     "Arguments:\n"
     "--h - Prints this message!\n"

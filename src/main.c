@@ -44,7 +44,7 @@ str8 slurp_file(char* path)
   if (slen < 0)
     goto error;
   
-  sbuf = malloc(slen + 1);
+  sbuf = malloc(slen + 4);
   if (sbuf == NULL)
     goto error;
   
@@ -76,9 +76,9 @@ f32 evaluate_ast(parser_node_t* node)
 {
   switch (node->node_type)
   {
-    case NODE_TYPE_NUMBER:
+    case TOKEN_TYPE_NUMBER:
       return node->as.number;
-    case NODE_TYPE_PLUS:
+    case TOKEN_TYPE_PLUS:
       return evaluate_ast(node->as.binary.left) + evaluate_ast(node->as.binary.right);
     default:
       c_assert(0, "Unimplemented!");
@@ -105,14 +105,14 @@ result_t parse_expr(str8* expr)
   );
 
   lex_token_t* tokens = (lex_token_t*)
-    (malloc(token_count * sizeof(lex_token_t)));
+    malloc(token_count * sizeof(lex_token_t));
   me_assert(tokens != NULL, 
     ERROR_CODE_INTERNAL_ERROR, 
     "Error allocating token memory!"
   );
 
   parser_node_t* nodes = (parser_node_t*)
-    (malloc(token_count * sizeof(parser_node_t)));
+    malloc(token_count * sizeof(parser_node_t));
   me_assert(nodes != NULL, 
     ERROR_CODE_INTERNAL_ERROR, 
     "Error allocating node memory!"
@@ -127,7 +127,6 @@ result_t parse_expr(str8* expr)
   };
   parser_node_t* head = parser_parse(&parser, nodes, NULL);
 
-  // TODO(calco): Evaluate AST
   f32 value = evaluate_ast(head);
 
   free(tokens);

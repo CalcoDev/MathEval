@@ -1,5 +1,35 @@
 #include "lexer.h"
 
+operator_type_t lex_token_get_op_type(lex_token_type_t node)
+{
+  switch (node)
+  {
+    case TOKEN_TYPE_NUMBER:
+      return OPERATOR_NO;
+    case TOKEN_TYPE_PLUS:
+      return OPERATOR_BINARY;
+    case TOKEN_TYPE_MINUS:
+      return OPERATOR_BINARY;
+    case TOKEN_TYPE_MULT:
+      return OPERATOR_BINARY;
+    case TOKEN_TYPE_DIV:
+      return OPERATOR_BINARY;
+    case TOKEN_TYPE_EXP:
+      return OPERATOR_BINARY;
+    case TOKEN_TYPE_SQRT:
+      return OPERATOR_UNARY;
+    case TOKEN_TYPE_LOG:
+      return OPERATOR_UNARY;
+    case TOKEN_TYPE_EOF:
+      return OPERATOR_NO;
+    default:
+      break;
+  }
+
+  c_assert(0, "Unreachable. Token type does not implement operator type.");
+  return OPERATOR_NO;
+}
+
 b8 lexer_estimate_token_count(lexer_t* lexer, i32* out_cnt)
 {
   i32 token_count = 0;

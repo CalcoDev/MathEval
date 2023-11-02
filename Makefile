@@ -3,11 +3,9 @@ CCFLAGS = -Wall -Wextra -Wpedantic -Wstrict-aliasing -Wno-newline-eof \
 	-Wno-gnu-zero-variadic-macro-arguments -Wno-unused-parameter
 LDFLAGS = 
 
-# ifeq ($(OS),Windows_NT)
-# 	LDFLAGS += -lmsvcrt.lib -lshell32.lib -lUser32.lib -lKernel32.lib \
-# 		-lGdi32.lib -lAdvapi32.lib -lComctl32.lib -lOle32.lib -lShLwApi.lib \
-# 		-lUserEnv.lib -lWindowsApp.lib
-# endif
+ifeq ($(OS),Windows_NT)
+	LDFLAGS += -lmsvcrt.lib
+endif
 
 SRC = $(wildcard src/*.c src/*/*.c src/*/*/*.c)
 OBJ = $(patsubst src/%, bin/obj/%, $(SRC:.c=.o))

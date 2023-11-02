@@ -8,32 +8,9 @@
 typedef struct parser_node_s parser_node_t;
 typedef struct parser_s parser_t;
 
-typedef enum
-{
-  NODE_TYPE_NUMBER,
-  NODE_TYPE_PLUS,
-  NODE_TYPE_MINUS,
-  NODE_TYPE_MULT,
-  NODE_TYPE_DIV,
-  NODE_TYPE_EXP,
-  NODE_TYPE_SQRT,
-  NODE_TYPE_LOG,
-  NODE_TYPE_PAREN_GROUP,
-  NODE_TYPE_EOF
-} parser_node_type_t;
-
-typedef enum
-{
-  OPERATOR_NO,
-  OPERATOR_UNARY,
-  OPERATOR_BINARY
-} operator_type_t;
-
-operator_type_t parser_node_get_op_type(parser_node_t node);
-
 struct parser_node_s
 {
-  parser_node_type_t node_type;
+  lex_token_type_t node_type;
   parser_node_t* parent;
 
   union {
@@ -55,6 +32,8 @@ struct parser_s
   const char* buffer;
   lex_token_t* tokens;
   i32 token_count;
+
+  lex_token_t* lookahead;
 };
 
 parser_node_t* parser_parse(parser_t* parser, parser_node_t* out_nodes, i32* count);

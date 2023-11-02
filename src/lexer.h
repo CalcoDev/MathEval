@@ -24,6 +24,15 @@ typedef enum lex_token_type_t
   TOKEN_TYPE_UNKNOWN_TOKEN
 } lex_token_type_t;
 
+typedef enum
+{
+  OPERATOR_NO,
+  OPERATOR_UNARY,
+  OPERATOR_BINARY
+} operator_type_t;
+
+operator_type_t lex_token_get_op_type(lex_token_type_t node);
+
 struct lex_token_view_s
 {
   i32 start;

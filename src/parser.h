@@ -31,12 +31,12 @@ struct parser_node_s
     f32 number;
     struct
     {
-      parser_node_type_t* down;
+      parser_node_t* down;
     } unary;
     struct
     {
-      parser_node_type_t* left;
-      parser_node_type_t* right;
+      parser_node_t* left;
+      parser_node_t* right;
     } binary;
   } as;
 };
@@ -49,6 +49,6 @@ struct parser_s
 };
 
 parser_node_t* parser_parse(parser_t* parser, parser_node_t* out_nodes, i32* count);
-parser_node_t parser_get_next_token(parser_t* parser);
+parser_node_t parser_get_next_node(parser_t* parser);
 
 #endif

@@ -78,6 +78,8 @@ f32 evaluate_ast(parser_node_t* node)
   {
     case NODE_TYPE_NUMBER:
       return node->as.number;
+    case NODE_TYPE_PLUS:
+      return evaluate_ast(node->as.binary.left) + evaluate_ast(node->as.binary.right);
     default:
       c_assert(0, "Unimplemented!");
       break;

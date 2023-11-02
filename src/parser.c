@@ -1,5 +1,33 @@
 #include "parser.h"
 
+operator_type_t parser_node_get_op_type(parser_node_t node)
+{
+  switch (node.node_type)
+  {
+    case NODE_TYPE_NUMBER:
+      return OPERATOR_NO;
+    case NODE_TYPE_PLUS:
+      return OPERATOR_BINARY;
+    case NODE_TYPE_MINUS:
+      return OPERATOR_BINARY;
+    case NODE_TYPE_MULT:
+      return OPERATOR_BINARY;
+    case NODE_TYPE_DIV:
+      return OPERATOR_BINARY;
+    case NODE_TYPE_EXP:
+      return OPERATOR_BINARY;
+    case NODE_TYPE_SQRT:
+      return OPERATOR_UNARY;
+    case NODE_TYPE_LOG:
+      return OPERATOR_UNARY;
+    case NODE_TYPE_EOF:
+      return OPERATOR_NO;
+  }
+
+  c_assert(0, "Unreachable. Node type does not implement operator type.");
+  return OPERATOR_NO;
+}
+
 // TODO(calco): THIS SHOULD NOT BE GLOBAL
 static parser_node_t* _out_nodes;
 
@@ -15,48 +43,46 @@ parser_node_t* parser_alloc_node(parser_t* parser)
   return &_out_nodes[node_idx++];
 }
 
+parser_node_t* parse_node_type(parser_t* parser, parser_node_type_t type)
+{
+  parser_node_t* node = parser_alloc_node(parser);
+  *node = parser_get_next_node(parser);
+  c_assert(node->node_type == type, 
+    "(NODE_TYPE): Expected a %d but got a %d!", (i32)type, (i32)node->node_type
+  );
+  return node;
+}
+
+parser_node_t* parse_node_operator_type(parser_t* parser, operator_type_t type)
+{
+  parser_node_t* operator = parser_alloc_node(parser);
+  *operator = parser_get_next_node(parser);
+  c_assert(parser_node_get_op_type(*operator) == type, 
+    "(OPERATOR_TYPE): Expected a %d but got a %d", (i32)type, (i32)operator->node_type
+  );
+  return operator;
+}
+
+parser_node_t* parse_additive_expressions(parser_t* parser)
+{
+  parser_node_t* lhs = parse_node_type(parser, NODE_TYPE_NUMBER);
+  if (parser->token_count < 2)
+    return lhs;
+  parser_node_t* op = parse_node_operator_type(parser, OPERATOR_BINARY);
+  parser_node_t* rhs = parse_node_type(parser, NODE_TYPE_NUMBER);
+
+  op->as.binary.left = lhs;
+  op->as.binary.right = rhs;
+  lhs->parent = op;
+  rhs->parent = op;
+
+  return op;
+}
+
 parser_node_t* parser_parse(parser_t* parser, parser_node_t* out_nodes, i32* count)
 {
   _out_nodes = out_nodes;
-
-  // get the left thing
-  parser_node_t* lhs = parser_alloc_node(parser);
-  *lhs = parser_get_next_node(parser);
-  c_assert(lhs->node_type == NODE_TYPE_NUMBER, 
-    "Left hand side should always be a number!"
-  );
-
-  // If that is all, return that.
-  if (parser->token_count < 2)
-    return lhs;
-
-  // If more tokens, get the operator. (if not an operator error)
-  // Handle the operator.
-  parser_node_t* operator = parser_alloc_node(parser);
-  *operator = parser_get_next_node(parser);
-
-  b8 is_binary_op = 
-    operator->node_type == NODE_TYPE_PLUS || 
-    operator->node_type == NODE_TYPE_MINUS ||
-    operator->node_type == NODE_TYPE_MULT ||
-    operator->node_type == NODE_TYPE_DIV ||
-    operator->node_type == NODE_TYPE_EXP;
-  c_assert(is_binary_op, "Not a binary operator. Unimplemented yet.");
-
-  // Get right
-  parser_node_t* rhs = parser_alloc_node(parser);
-  *rhs = parser_get_next_node(parser);
-  c_assert(rhs->node_type == NODE_TYPE_NUMBER, 
-    "Right hand side should always be a number!"
-  );
-
-  // Combine
-  operator->as.binary.left = lhs;
-  operator->as.binary.right = rhs;
-  lhs->parent = operator;
-  rhs->parent = operator;
-
-  return operator;
+  return parse_additive_expressions(parser);
 }
 
 parser_node_t parser_make_node(parser_t* parser, parser_node_t* parent, parser_node_type_t type)

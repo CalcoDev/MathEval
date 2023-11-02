@@ -22,6 +22,15 @@ typedef enum
   NODE_TYPE_EOF
 } parser_node_type_t;
 
+typedef enum
+{
+  OPERATOR_NO,
+  OPERATOR_UNARY,
+  OPERATOR_BINARY
+} operator_type_t;
+
+operator_type_t parser_node_get_op_type(parser_node_t node);
+
 struct parser_node_s
 {
   parser_node_type_t node_type;
